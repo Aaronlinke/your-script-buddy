@@ -220,24 +220,58 @@ function Index() {
   );
 }
 
-function EmptyState({ onPick }: { onPick: (q: string) => void }) {
-  const examples = [
+const EXAMPLES_BY_BOT: Record<BotId, string[]> = {
+  allrounder: [
     "Installiere Python 3 und pip in Termux",
-    "Zeig mir ein Backup-Script für meinen Home-Ordner",
+    "Backup-Script für ~/storage/shared/DCIM auf externe SD",
     "Wie richte ich SSH-Server in Termux ein?",
-    "Script: alle .jpg im Storage in ein Datum-Ordner sortieren",
-  ];
+    "Alle .jpg im Storage nach Aufnahmedatum in Ordner sortieren",
+  ],
+  scripter: [
+    "Script: täglich um 3 Uhr Fotos auf USB-Stick sichern",
+    "Script: alle leeren Ordner in ~/storage/shared löschen",
+    "Script: Batterie-Log alle 5 Min in CSV schreiben",
+    "Script: WhatsApp-Media nach Kontakt in Unterordner sortieren",
+  ],
+  coder: [
+    "Python: Telegram-Bot der Battery-Status meldet",
+    "Node.js: Express-API auf Port 3000 mit /ping Endpoint",
+    "Python: Bildkomprimierer für einen ganzen Ordner",
+    "Bash: rekursiver Dateihasher (sha256) mit Ausgabe als JSON",
+  ],
+  automation: [
+    "Beim Termux-Start automatisch SSH-Server hochfahren",
+    "Widget-Script das WLAN toggled",
+    "Jede Stunde Foto von Frontkamera speichern (termux-api)",
+    "Bei niedrigem Akku Notification + WLAN aus",
+  ],
+  netzwerk: [
+    "SSH-Server auf Port 8022 mit key-only-Login",
+    "HTTP-Server für ~/storage/shared im lokalen Netz",
+    "Reverse-Tunnel via cloudflared zu localhost:8080",
+    "nmap-Scan des lokalen Subnetzes",
+  ],
+  debugger: [
+    "Fehler: 'pkg: command not found' – was tun?",
+    "sshd startet nicht – wie debuggen?",
+    "pip install cryptography schlägt fehl",
+    "termux-setup-storage fragt nicht nach Berechtigung",
+  ],
+};
+
+function EmptyState({ onPick, botId }: { onPick: (q: string) => void; botId: BotId }) {
+  const bot = BOTS[botId];
+  const examples = EXAMPLES_BY_BOT[botId];
   return (
     <div className="mt-8 sm:mt-16 text-center">
-      <div className="inline-flex w-14 h-14 rounded-2xl bg-primary/15 text-primary items-center justify-center mb-4">
-        <TerminalSquare className="w-7 h-7" />
+      <div className="inline-flex w-14 h-14 rounded-2xl bg-primary/15 text-primary items-center justify-center mb-4 text-2xl">
+        {bot.emoji}
       </div>
       <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">
-        Was soll Termux für dich tun?
+        {bot.name} bereit.
       </h2>
       <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-        Beschreib dein Ziel — du bekommst die genauen Befehle als kopierbare Blöcke oder ein
-        fertiges Script zum Download.
+        {bot.tagline}. Kein Blabla, direkt lauffähige Befehle & Scripts.
       </p>
       <div className="grid sm:grid-cols-2 gap-2 mt-6 max-w-2xl mx-auto">
         {examples.map((ex) => (
@@ -253,6 +287,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
     </div>
   );
 }
+
 
 function MessageBubble({ message }: { message: UIMessage }) {
   const isUser = message.role === "user";
