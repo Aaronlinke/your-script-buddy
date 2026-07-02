@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import { Check, Copy, Download, Send, Trash2, TerminalSquare, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { BOTS, BOT_LIST, type BotId } from "@/lib/termux-bots";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/")({
 });
 
 const STORAGE_KEY = "termux-copilot:messages:v1";
+const BOT_KEY = "termux-copilot:bot:v1";
 
 function loadMessages(): UIMessage[] {
   if (typeof window === "undefined") return [];
@@ -39,19 +41,36 @@ function loadMessages(): UIMessage[] {
   }
 }
 
+function loadBot(): BotId {
+  if (typeof window === "undefined") return "allrounder";
+  const v = window.localStorage.getItem(BOT_KEY) as BotId | null;
+  return v && BOTS[v] ? v : "allrounder";
+}
+
 function Index() {
   const [initialMessages] = useState<UIMessage[]>(() => loadMessages());
   const [input, setInput] = useState("");
-  const transport = useRef(new DefaultChatTransport({ api: "/api/chat" }));
+  const [botId, setBotId] = useState<BotId>(() => loadBot());
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
+
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: "/api/chat", body: { botId } }),
+    [botId],
+  );
 
   const { messages, sendMessage, status, setMessages, stop } = useChat({
     id: "termux-copilot-single",
     messages: initialMessages,
-    transport: transport.current,
+    transport,
     onError: (err) => toast.error(err.message ?? "Fehler bei der KI-Antwort"),
   });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem(BOT_KEY, botId);
+  }, [botId]);
+
+  const activeBot = BOTS[botId];
 
   useEffect(() => {
     if (typeof window === "undefined") return;
