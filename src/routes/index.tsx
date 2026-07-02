@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import ReactMarkdown from "react-markdown";
 import { Check, Copy, Download, Send, Trash2, TerminalSquare, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { BOTS, BOT_LIST, type BotId } from "@/lib/termux-bots";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/")({
 });
 
 const STORAGE_KEY = "termux-copilot:messages:v1";
+const BOT_KEY = "termux-copilot:bot:v1";
 
 function loadMessages(): UIMessage[] {
   if (typeof window === "undefined") return [];
@@ -39,19 +41,36 @@ function loadMessages(): UIMessage[] {
   }
 }
 
+function loadBot(): BotId {
+  if (typeof window === "undefined") return "allrounder";
+  const v = window.localStorage.getItem(BOT_KEY) as BotId | null;
+  return v && BOTS[v] ? v : "allrounder";
+}
+
 function Index() {
   const [initialMessages] = useState<UIMessage[]>(() => loadMessages());
   const [input, setInput] = useState("");
-  const transport = useRef(new DefaultChatTransport({ api: "/api/chat" }));
+  const [botId, setBotId] = useState<BotId>(() => loadBot());
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
+
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: "/api/chat", body: { botId } }),
+    [botId],
+  );
 
   const { messages, sendMessage, status, setMessages, stop } = useChat({
     id: "termux-copilot-single",
     messages: initialMessages,
-    transport: transport.current,
+    transport,
     onError: (err) => toast.error(err.message ?? "Fehler bei der KI-Antwort"),
   });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") window.localStorage.setItem(BOT_KEY, botId);
+  }, [botId]);
+
+  const activeBot = BOTS[botId];
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -99,7 +118,7 @@ function Index() {
                 Termux Copilot
               </h1>
               <p className="text-[11px] text-muted-foreground leading-tight">
-                KI für Termux-Befehle & Scripts
+                {activeBot.emoji} {activeBot.name} · {activeBot.tagline}
               </p>
             </div>
           </div>
@@ -112,11 +131,30 @@ function Index() {
             </button>
           )}
         </div>
+        <div className="max-w-3xl mx-auto px-3 pb-2 flex gap-1.5 overflow-x-auto scrollbar-none">
+          {BOT_LIST.map((b) => {
+            const active = b.id === botId;
+            return (
+              <button
+                key={b.id}
+                onClick={() => setBotId(b.id)}
+                className={`shrink-0 text-[11px] px-2.5 py-1 rounded-full border transition font-mono ${
+                  active
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-transparent text-muted-foreground border-border hover:border-primary/50 hover:text-foreground"
+                }`}
+                title={b.tagline}
+              >
+                {b.emoji} {b.name}
+              </button>
+            );
+          })}
+        </div>
       </header>
 
       <main className="flex-1 w-full max-w-3xl mx-auto px-3 sm:px-4 py-4 pb-40 sm:pb-44">
         {messages.length === 0 ? (
-          <EmptyState onPick={(q) => setInput(q)} />
+          <EmptyState onPick={(q) => setInput(q)} botId={botId} />
         ) : (
           <div className="space-y-4">
             {messages.map((m) => (
@@ -131,6 +169,7 @@ function Index() {
           </div>
         )}
       </main>
+
 
       <form
         onSubmit={handleSubmit}
@@ -181,24 +220,58 @@ function Index() {
   );
 }
 
-function EmptyState({ onPick }: { onPick: (q: string) => void }) {
-  const examples = [
+const EXAMPLES_BY_BOT: Record<BotId, string[]> = {
+  allrounder: [
     "Installiere Python 3 und pip in Termux",
-    "Zeig mir ein Backup-Script für meinen Home-Ordner",
+    "Backup-Script für ~/storage/shared/DCIM auf externe SD",
     "Wie richte ich SSH-Server in Termux ein?",
-    "Script: alle .jpg im Storage in ein Datum-Ordner sortieren",
-  ];
+    "Alle .jpg im Storage nach Aufnahmedatum in Ordner sortieren",
+  ],
+  scripter: [
+    "Script: täglich um 3 Uhr Fotos auf USB-Stick sichern",
+    "Script: alle leeren Ordner in ~/storage/shared löschen",
+    "Script: Batterie-Log alle 5 Min in CSV schreiben",
+    "Script: WhatsApp-Media nach Kontakt in Unterordner sortieren",
+  ],
+  coder: [
+    "Python: Telegram-Bot der Battery-Status meldet",
+    "Node.js: Express-API auf Port 3000 mit /ping Endpoint",
+    "Python: Bildkomprimierer für einen ganzen Ordner",
+    "Bash: rekursiver Dateihasher (sha256) mit Ausgabe als JSON",
+  ],
+  automation: [
+    "Beim Termux-Start automatisch SSH-Server hochfahren",
+    "Widget-Script das WLAN toggled",
+    "Jede Stunde Foto von Frontkamera speichern (termux-api)",
+    "Bei niedrigem Akku Notification + WLAN aus",
+  ],
+  netzwerk: [
+    "SSH-Server auf Port 8022 mit key-only-Login",
+    "HTTP-Server für ~/storage/shared im lokalen Netz",
+    "Reverse-Tunnel via cloudflared zu localhost:8080",
+    "nmap-Scan des lokalen Subnetzes",
+  ],
+  debugger: [
+    "Fehler: 'pkg: command not found' – was tun?",
+    "sshd startet nicht – wie debuggen?",
+    "pip install cryptography schlägt fehl",
+    "termux-setup-storage fragt nicht nach Berechtigung",
+  ],
+};
+
+function EmptyState({ onPick, botId }: { onPick: (q: string) => void; botId: BotId }) {
+  const bot = BOTS[botId];
+  const examples = EXAMPLES_BY_BOT[botId];
   return (
     <div className="mt-8 sm:mt-16 text-center">
-      <div className="inline-flex w-14 h-14 rounded-2xl bg-primary/15 text-primary items-center justify-center mb-4">
-        <TerminalSquare className="w-7 h-7" />
+      <div className="inline-flex w-14 h-14 rounded-2xl bg-primary/15 text-primary items-center justify-center mb-4 text-2xl">
+        {bot.emoji}
       </div>
       <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">
-        Was soll Termux für dich tun?
+        {bot.name} bereit.
       </h2>
       <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-        Beschreib dein Ziel — du bekommst die genauen Befehle als kopierbare Blöcke oder ein
-        fertiges Script zum Download.
+        {bot.tagline}. Kein Blabla, direkt lauffähige Befehle & Scripts.
       </p>
       <div className="grid sm:grid-cols-2 gap-2 mt-6 max-w-2xl mx-auto">
         {examples.map((ex) => (
@@ -214,6 +287,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
     </div>
   );
 }
+
 
 function MessageBubble({ message }: { message: UIMessage }) {
   const isUser = message.role === "user";
