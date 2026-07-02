@@ -118,7 +118,7 @@ function Index() {
                 Termux Copilot
               </h1>
               <p className="text-[11px] text-muted-foreground leading-tight">
-                KI für Termux-Befehle & Scripts
+                {activeBot.emoji} {activeBot.name} · {activeBot.tagline}
               </p>
             </div>
           </div>
@@ -131,11 +131,30 @@ function Index() {
             </button>
           )}
         </div>
+        <div className="max-w-3xl mx-auto px-3 pb-2 flex gap-1.5 overflow-x-auto scrollbar-none">
+          {BOT_LIST.map((b) => {
+            const active = b.id === botId;
+            return (
+              <button
+                key={b.id}
+                onClick={() => setBotId(b.id)}
+                className={`shrink-0 text-[11px] px-2.5 py-1 rounded-full border transition font-mono ${
+                  active
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-transparent text-muted-foreground border-border hover:border-primary/50 hover:text-foreground"
+                }`}
+                title={b.tagline}
+              >
+                {b.emoji} {b.name}
+              </button>
+            );
+          })}
+        </div>
       </header>
 
       <main className="flex-1 w-full max-w-3xl mx-auto px-3 sm:px-4 py-4 pb-40 sm:pb-44">
         {messages.length === 0 ? (
-          <EmptyState onPick={(q) => setInput(q)} />
+          <EmptyState onPick={(q) => setInput(q)} botId={botId} />
         ) : (
           <div className="space-y-4">
             {messages.map((m) => (
@@ -150,6 +169,7 @@ function Index() {
           </div>
         )}
       </main>
+
 
       <form
         onSubmit={handleSubmit}
