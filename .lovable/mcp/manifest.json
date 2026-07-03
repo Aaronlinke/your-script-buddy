@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "termux-copilot-mcp",
+      "version": "0.1.0",
+      "title": "Termux Copilot"
+    },
+    "tools": [
+      {
+        "name": "list_termux_bots",
+        "title": "List Termux bots",
+        "description": "List every specialized Termux bot available (id, name, focus). Call this first to pick the right bot for ask_termux_bot.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "ask_termux_bot",
+        "title": "Ask a Termux bot",
+        "description": "Ask a specialized Termux bot (allrounder, scripter, coder, automation, netzwerk, debugger) for real, copy-pasteable Termux commands or a full bash script. No placeholders, no examples — production-ready output.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "bot": {
+              "default": "allrounder",
+              "description": "Which Termux bot to consult. Default: allrounder.",
+              "type": "string",
+              "enum": [
+                "allrounder",
+                "scripter",
+                "coder",
+                "automation",
+                "netzwerk",
+                "debugger"
+              ]
+            },
+            "prompt": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The task or question, in German or English."
+            }
+          },
+          "required": [
+            "prompt"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
