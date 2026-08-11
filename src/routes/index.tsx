@@ -81,9 +81,10 @@ function Index() {
   const activeBot = BOTS[botId];
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!hydrated) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  }, [messages]);
+  }, [messages, hydrated]);
+
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
