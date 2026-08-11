@@ -269,6 +269,12 @@ const EXAMPLES_BY_BOT: Record<BotId, string[]> = {
     "pip install cryptography schlägt fehl",
     "termux-setup-storage fragt nicht nach Berechtigung",
   ],
+  team: [
+    "Baue mir ein komplettes Backup-System für mein Handy",
+    "Mach aus meinem Handy einen 24/7 Webserver mit Tunnel",
+    "Foto-Automatik: stündlich Bild, komprimieren, hochladen",
+    "Telegram-Bot der mein Handy fernsteuert",
+  ],
 };
 
 function EmptyState({ onPick, botId }: { onPick: (q: string) => void; botId: BotId }) {
