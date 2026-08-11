@@ -97,7 +97,7 @@ Nützliche Muster:
 - JSON parsen: curl -fsSL url | jq -r '.feld'
 - Paralleles Download: pkg install aria2 && aria2c -x8 url
 - Dateien vom Handy: ~/storage/shared/... (nach termux-setup-storage)
-
+`;
 
 const RESPONSE_RULES = `
 ANTWORT-FORMAT:
