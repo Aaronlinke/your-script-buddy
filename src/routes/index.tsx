@@ -126,7 +126,10 @@ function Index() {
               <h1 className="font-mono text-sm sm:text-base font-semibold leading-tight">
                 Termux Copilot
               </h1>
-              <p className="text-[11px] text-muted-foreground leading-tight">
+              <p
+                suppressHydrationWarning
+                className="text-[11px] text-muted-foreground leading-tight"
+              >
                 {activeBot.emoji} {activeBot.name} · {activeBot.tagline}
               </p>
             </div>
