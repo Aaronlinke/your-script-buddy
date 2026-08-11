@@ -126,7 +126,10 @@ function Index() {
               <h1 className="font-mono text-sm sm:text-base font-semibold leading-tight">
                 Termux Copilot
               </h1>
-              <p className="text-[11px] text-muted-foreground leading-tight">
+              <p
+                suppressHydrationWarning
+                className="text-[11px] text-muted-foreground leading-tight"
+              >
                 {activeBot.emoji} {activeBot.name} · {activeBot.tagline}
               </p>
             </div>
@@ -140,7 +143,7 @@ function Index() {
             </button>
           )}
         </div>
-        <div className="max-w-3xl mx-auto px-3 pb-2 flex gap-1.5 overflow-x-auto scrollbar-none">
+        <div suppressHydrationWarning className="max-w-3xl mx-auto px-3 pb-2 flex gap-1.5 overflow-x-auto scrollbar-none">
           {BOT_LIST.map((b) => {
             const active = b.id === botId;
             return (
