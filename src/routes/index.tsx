@@ -48,9 +48,9 @@ function loadBot(): BotId {
 }
 
 function Index() {
-  const [initialMessages] = useState<UIMessage[]>(() => loadMessages());
   const [input, setInput] = useState("");
-  const [botId, setBotId] = useState<BotId>(() => loadBot());
+  const [botId, setBotId] = useState<BotId>("allrounder");
+  const [hydrated, setHydrated] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -61,21 +61,30 @@ function Index() {
 
   const { messages, sendMessage, status, setMessages, stop } = useChat({
     id: "termux-copilot-single",
-    messages: initialMessages,
     transport,
     onError: (err) => toast.error(err.message ?? "Fehler bei der KI-Antwort"),
   });
 
+  // Browser-only state is restored after mount to keep SSR markup stable.
   useEffect(() => {
-    if (typeof window !== "undefined") window.localStorage.setItem(BOT_KEY, botId);
-  }, [botId]);
+    const stored = loadMessages();
+    if (stored.length) setMessages(stored);
+    setBotId(loadBot());
+    setHydrated(true);
+  }, [setMessages]);
+
+  useEffect(() => {
+    if (hydrated) window.localStorage.setItem(BOT_KEY, botId);
+  }, [botId, hydrated]);
+
 
   const activeBot = BOTS[botId];
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!hydrated) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-  }, [messages]);
+  }, [messages, hydrated]);
+
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });

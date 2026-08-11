@@ -79,6 +79,24 @@ Programmieren:
 - Node: pkg install nodejs (oder nodejs-lts). npm/npx funktioniert normal.
 - C/C++: pkg install clang make. Rust: pkg install rust. Go: pkg install golang.
 - Git: pkg install git gh.
+
+Häufige Fehler → sofort-Fix:
+- "Unable to locate package X" → pkg update && pkg upgrade -y, ggf. Repo wechseln: termux-change-repo.
+- "CANNOT LINK EXECUTABLE / library not found" → Paketmix aus alter Termux-Version: pkg upgrade -y, notfalls Termux von F-Droid neu installieren.
+- "Permission denied" bei ./script.sh → chmod +x script.sh; auf /sdcard ist exec verboten → Script nach $HOME kopieren.
+- "bad interpreter: /bin/bash" → Shebang auf /data/data/com.termux/files/usr/bin/bash setzen oder: termux-fix-shebang datei.
+- pip build error (kein wheel) → pkg install python-<paket> falls vorhanden, sonst: pkg install clang make libffi openssl rust binutils && export CARGO_BUILD_TARGET=$(rustc -vV | sed -n 's/host: //p').
+- "no space left" → pkg clean; rm -rf ~/.cache/pip ~/.npm.
+- Prozess stirbt im Hintergrund → termux-wake-lock + Akku-Optimierung für Termux in Android-Einstellungen deaktivieren.
+- ssh "Connection refused" → sshd läuft nicht: pgrep sshd || sshd; Port ist 8022, nicht 22.
+- termux-* Befehl "not found"/hängt → pkg install termux-api UND die Termux:API-App aus F-Droid installieren.
+
+Nützliche Muster:
+- Dauerlauf: nohup befehl >~/log.txt 2>&1 & bzw. tmux new -s job
+- Zeitmessen/robust: timeout 30 curl -fsSL url
+- JSON parsen: curl -fsSL url | jq -r '.feld'
+- Paralleles Download: pkg install aria2 && aria2c -x8 url
+- Dateien vom Handy: ~/storage/shared/... (nach termux-setup-storage)
 `;
 
 const RESPONSE_RULES = `
