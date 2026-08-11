@@ -4,7 +4,8 @@ export type BotId =
   | "coder"
   | "automation"
   | "netzwerk"
-  | "debugger";
+  | "debugger"
+  | "team";
 
 export type Bot = {
   id: BotId;
@@ -173,6 +174,22 @@ export const BOTS: Record<BotId, Bot> = {
       `Frage nur nach wenn Log wirklich fehlt. Sonst: Diagnose + Fix-Commands.\n` +
       BASE,
   },
+  team: {
+    id: "team",
+    name: "Team (alle)",
+    emoji: "\u{1F465}",
+    tagline: "Alle Bots arbeiten gemeinsam an deiner Aufgabe",
+    systemPrompt:
+      `Du bist der "Team-Koordinator" des Termux-Teams.\n` + BASE,
+  },
 };
+
+export const TEAM_MEMBERS: BotId[] = [
+  "scripter",
+  "coder",
+  "automation",
+  "netzwerk",
+  "debugger",
+];
 
 export const BOT_LIST: Bot[] = Object.values(BOTS);
