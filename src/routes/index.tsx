@@ -143,7 +143,7 @@ function Index() {
             </button>
           )}
         </div>
-        <div className="max-w-3xl mx-auto px-3 pb-2 flex gap-1.5 overflow-x-auto scrollbar-none">
+        <div suppressHydrationWarning className="max-w-3xl mx-auto px-3 pb-2 flex gap-1.5 overflow-x-auto scrollbar-none">
           {BOT_LIST.map((b) => {
             const active = b.id === botId;
             return (
